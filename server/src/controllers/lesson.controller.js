@@ -1,5 +1,7 @@
 import Course from "../models/Course.js";
 import Lesson from "../models/Lesson.js";
+import { videoQueue } from "../queues/video.queue.js";
+import Enrollment from "../models/Enrollment.js";
 
 const canManage = (course, user) =>
   user.role === "admin" || course.instructor.equals(user._id);
@@ -58,4 +60,80 @@ export async function deleteLesson(req, res) {
   await lesson.deleteOne();
   await syncLessonCount(course._id);
   res.json({ message: "Lesson deleted" });
+}
+
+
+// upload se PEHLE ownership check, taaki bina permission wali file disk par na aaye
+export async function loadOwnedLesson(req, res, next) {
+  const lesson = await Lesson.findById(req.params.id);
+  if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+
+  const course = await Course.findById(lesson.course);
+  if (!canManage(course, req.user)) {
+    return res.status(403).json({ message: "Not your course" });
+  }
+
+  req.lesson = lesson;
+  next();
+}
+
+export function blockIfProcessing(req, res, next) {
+  if (req.lesson.video.status === "processing") {
+    return res.status(409).json({ message: "Video is still processing, try again later" });
+  }
+  next();
+}
+
+export async function uploadVideo(req, res) {
+  if (!req.file) {
+    return res.status(400).json({ message: "Attach a video file in the 'video' field" });
+  }
+
+  const lesson = req.lesson;
+  lesson.video.rawKey = req.file.filename;
+  lesson.video.hlsKey = undefined;
+  lesson.video.status = "uploaded";
+  await lesson.save();
+
+  await videoQueue.add("convert", {
+    lessonId: lesson._id.toString(),
+    rawFile: req.file.filename,
+  });
+
+  res.status(202).json({ message: "Upload received, processing started", status: "uploaded" });
+}
+
+export function videoStatus(req, res) {
+  const { status, duration, hlsKey } = req.lesson.video;
+  res.json({ status, duration, hlsKey });
+}
+
+
+export async function completeLesson(req, res) {
+  const lesson = await Lesson.findById(req.params.id);
+  if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+
+  const enrollment = await Enrollment.findOne({
+    student: req.user._id,
+    course: lesson.course,
+  });
+  if (!enrollment) return res.status(403).json({ message: "You are not enrolled" });
+
+  // $addToSet se dobara complete karne par duplicate entry nahi banti
+  await Enrollment.updateOne(
+    { _id: enrollment._id },
+    { $addToSet: { completedLessons: lesson._id } }
+  );
+
+  const fresh = await Enrollment.findById(enrollment._id);
+  const course = await Course.findById(lesson.course).select("totalLessons");
+
+  const done = fresh.completedLessons.length;
+  fresh.progress = Math.min(100, Math.round((done / course.totalLessons) * 100));
+  if (fresh.progress === 100 && !fresh.completedAt) {
+    fresh.completedAt = new Date();
+  }
+  await fresh.save();
+
+  res.json({ progress: fresh.progress, completedLessons: fresh.completedLessons });
 }

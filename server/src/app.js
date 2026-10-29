@@ -5,22 +5,31 @@ import morgan from "morgan";
 import authRoutes from "./routes/auth.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import lessonRoutes from "./routes/lesson.routes.js";
-
+import enrollmentRoutes from "./routes/enrollment.routes.js";
 
 const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(express.json());
+// local HLS files serve karne ke liye. Step 4 mein CloudFront isko replace karega
+
 app.use(morgan("dev"));
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/lessons", lessonRoutes);
-
+app.use("/api/enrollments", enrollmentRoutes);
 
 app.use((err, req, res, next) => {
+      if (err.name === "MulterError") {
+    return res.status(400).json({ message: err.message });
+  }
+  if (err.message && err.message.startsWith("Only mp4")) {
+    return res.status(400).json({ message: err.message });
+  }
+
   if (err.name === "CastError") {
     return res.status(400).json({ message: "Invalid id" });
   }
