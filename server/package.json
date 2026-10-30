@@ -36,8 +36,13 @@
     "dev": "nodemon src/server.js",
     "worker": "nodemon src/workers/video.worker.js",
     "seed": "node seed/seed.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit"
   },
+  "jest": {
+  "testEnvironment": "node",
+  "transform": {},
+  "testTimeout": 20000
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
