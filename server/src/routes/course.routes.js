@@ -8,6 +8,7 @@ import {
   togglePublish,
   deleteCourse,
 } from "../controllers/course.controller.js";
+import { createLive, listLive } from "../controllers/live.controller.js";
 import { addLesson } from "../controllers/lesson.controller.js";
 import { protect, allowRoles, optionalAuth } from "../middleware/auth.js";
 import { createQuiz, listCourseQuizzes } from "../controllers/quiz.controller.js";
@@ -27,5 +28,7 @@ router.post("/:id/enroll", protect, enroll);
 router.post("/:id/quizzes", protect, teacher, createQuiz);
 router.get("/:id/quizzes", protect, listCourseQuizzes);
 router.post("/:id/lessons", protect, teacher, addLesson);
+router.post("/:id/live", protect, teacher, createLive);
+router.get("/:id/live", protect, listLive);
 
 export default router;

@@ -7,6 +7,7 @@ import courseRoutes from "./routes/course.routes.js";
 import lessonRoutes from "./routes/lesson.routes.js";
 import enrollmentRoutes from "./routes/enrollment.routes.js";
 import quizRoutes from "./routes/quiz.routes.js";
+import liveRoutes from "./routes/live.routes.js";
 
 const app = express();
 
@@ -23,6 +24,9 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/quizzes", quizRoutes);
+app.use("/api/live", liveRoutes);
+
+
 app.use((err, req, res, next) => {
       if (err.name === "MulterError") {
     return res.status(400).json({ message: err.message });
