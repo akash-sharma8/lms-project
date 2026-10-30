@@ -8,6 +8,10 @@ import Register from "./pages/Register";
 import Learn from "./pages/Learn";
 import MyLearning from "./pages/MyLearning";
 import Quiz from "./pages/Quiz";
+import InstructorDashboard from "./pages/InstructorDashboard";
+import ManageCourse from "./pages/ManageCourse";
+import QuizBuilder from "./pages/QuizBuilder";
+
 
 export default function App() {
   return (
@@ -30,6 +34,19 @@ export default function App() {
           path="/quiz/:quizId"
           element={<ProtectedRoute><Quiz /></ProtectedRoute>}
         />
+        <Route
+          path="/instructor"
+          element={<ProtectedRoute roles={["instructor", "admin"]}><InstructorDashboard /></ProtectedRoute>}
+        />
+        <Route
+          path="/instructor/courses/:id"
+          element={<ProtectedRoute roles={["instructor", "admin"]}><ManageCourse /></ProtectedRoute>}
+        />
+        <Route
+          path="/instructor/courses/:id/quiz/new"
+          element={<ProtectedRoute roles={["instructor", "admin"]}><QuizBuilder /></ProtectedRoute>}
+        />
+
       </Routes>
     </>
   );

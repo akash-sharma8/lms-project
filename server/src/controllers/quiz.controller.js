@@ -87,6 +87,7 @@ export async function listCourseQuizzes(req, res) {
   if (!access.enrolled) return res.status(403).json({ message: "Enroll to see quizzes" });
 
   const quizzes = await Quiz.find({ course: req.params.id }).sort("createdAt");
+  if (quizzes.length === 0) return res.json([]);
   const list = quizzes.map((q) => ({
     _id: q._id,
     title: q.title,

@@ -15,7 +15,8 @@ export default function Navbar() {
   return (
     <nav style={{ display: "flex", gap: 16, padding: "12px 24px", borderBottom: "1px solid #ddd" }}>
       <Link to="/"><b>LMS</b></Link>
-      {user && <Link to="/my-learning">My Learning</Link>}
+      {user?.role === "student" && <Link to="/my-learning">My Learning</Link>}
+      {user && user.role !== "student" && <Link to="/instructor">Dashboard</Link>}
       <span style={{ marginLeft: "auto" }} />
       {user ? (
         <>
