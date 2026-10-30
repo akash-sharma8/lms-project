@@ -11,7 +11,7 @@ import Quiz from "./pages/Quiz";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import ManageCourse from "./pages/ManageCourse";
 import QuizBuilder from "./pages/QuizBuilder";
-
+import LiveRoom from "./pages/LiveRoom";
 
 export default function App() {
   return (
@@ -45,6 +45,10 @@ export default function App() {
         <Route
           path="/instructor/courses/:id/quiz/new"
           element={<ProtectedRoute roles={["instructor", "admin"]}><QuizBuilder /></ProtectedRoute>}
+        />
+        <Route
+          path="/live/:liveId"
+          element={<ProtectedRoute><LiveRoom /></ProtectedRoute>}
         />
 
       </Routes>

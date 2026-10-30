@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { fetchCourse, fetchMyEnrollments } from "../features/courses/coursesSlice";
+import LiveSection from "../components/LiveSection";
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -77,6 +78,7 @@ const enrolled = enrollments.some((e) => e.course?._id === id);
         </li>
       ))}
     </ul>
+    <LiveSection courseId={id} isOwner={false} />
   </>
 )}
       </ol>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api/axios";
 import LessonRow from "../components/LessonRow";
+import LiveSection from "../components/LiveSection";
 
 export default function ManageCourse() {
   const { id } = useParams();
@@ -133,6 +134,7 @@ export default function ManageCourse() {
         ))}
       </ul>
       <Link to={`/instructor/courses/${id}/quiz/new`}>+ Add quiz</Link>
+      <LiveSection courseId={id} isOwner={true} />
     </div>
   );
 }
