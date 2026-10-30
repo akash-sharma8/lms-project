@@ -14,5 +14,6 @@ const enrollmentSchema = new mongoose.Schema(
 
 // one student can only enroll once per course
 enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
+enrollmentSchema.index({ certificateId: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("Enrollment", enrollmentSchema);
