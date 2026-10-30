@@ -17,6 +17,7 @@ export default function Navbar() {
       <Link to="/"><b>LMS</b></Link>
       {user?.role === "student" && <Link to="/my-learning">My Learning</Link>}
       {user && user.role !== "student" && <Link to="/instructor">Dashboard</Link>}
+      {user && user.role !== "student" && <Link to="/instructor/earnings">Earnings</Link>}
       <span style={{ marginLeft: "auto" }} />
       {user ? (
         <>

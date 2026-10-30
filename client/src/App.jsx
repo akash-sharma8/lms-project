@@ -13,6 +13,7 @@ import ManageCourse from "./pages/ManageCourse";
 import QuizBuilder from "./pages/QuizBuilder";
 import LiveRoom from "./pages/LiveRoom";
 import VerifyCertificate from "./pages/VerifyCertificate";
+import Earnings from "./pages/Earnings";
 
 export default function App() {
   return (
@@ -52,7 +53,10 @@ export default function App() {
           element={<ProtectedRoute><LiveRoom /></ProtectedRoute>}
         />
         <Route path="/verify/:certId" element={<VerifyCertificate />} />
-
+        <Route
+          path="/instructor/earnings"
+          element={<ProtectedRoute roles={["instructor", "admin"]}><Earnings /></ProtectedRoute>}
+        />
       </Routes>
     </>
   );

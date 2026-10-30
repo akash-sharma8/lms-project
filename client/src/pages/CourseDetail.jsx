@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { fetchCourse, fetchMyEnrollments } from "../features/courses/coursesSlice";
 import LiveSection from "../components/LiveSection";
+import { payForCourse } from "../utils/razorpay";
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -20,25 +21,27 @@ export default function CourseDetail() {
   }, [id, user, dispatch]);
 
   useEffect(() => {
-  const allowed = enrolled || (user && user.role !== "student");
-  if (!allowed) {
-    setQuizzes([]);
-    return;
-  }
-  api.get(`/courses/${id}/quizzes`).then(({ data }) => setQuizzes(data)).catch(() => setQuizzes([]));
-}, [id, user, enrollments]);
+    const allowed = enrolled || (user && user.role !== "student");
+    if (!allowed) {
+      setQuizzes([]);
+      return;
+    }
+    api.get(`/courses/${id}/quizzes`).then(({ data }) => setQuizzes(data)).catch(() => setQuizzes([]));
+  }, [id, user, enrollments]);
 
-const enrolled = enrollments.some((e) => e.course?._id === id);
+  const enrolled = enrollments.some((e) => e.course?._id === id);
   if (!current) return <p style={{ padding: 24 }}>Loading...</p>;
   const { course, lessons } = current;
 
   async function handleEnroll() {
     if (!user) return navigate("/login");
+    setMsg("");
     try {
-      await api.post(`/courses/${id}/enroll`);
+      if (course.price > 0) await payForCourse(id, user);
+      else await api.post(`/courses/${id}/enroll`);
       dispatch(fetchMyEnrollments());
     } catch (err) {
-      setMsg(err.response?.data?.message || "Could not enroll");
+      setMsg(err.response?.data?.message || err.message || "Could not enroll");
     }
   }
 
@@ -48,7 +51,11 @@ const enrolled = enrollments.some((e) => e.course?._id === id);
       <p>{course.description}</p>
       <p>by {course.instructor?.name} · {course.price === 0 ? "Free" : `₹${course.price}`}</p>
 
-      {user?.role === "student" && !enrolled && <button onClick={handleEnroll}>Enroll now</button>}
+      {user?.role === "student" && !enrolled && (
+        <button onClick={handleEnroll}>
+          {course.price > 0 ? `Buy for ₹${course.price}` : "Enroll now"}
+        </button>
+      )}
       {enrolled && <b style={{ color: "green" }}>You are enrolled</b>}
       {msg && <p style={{ color: "crimson" }}>{msg}</p>}
 
@@ -65,22 +72,22 @@ const enrolled = enrollments.some((e) => e.course?._id === id);
           </li>
         ))}
         {quizzes.length > 0 && (
-  <>
-    <h3>Quizzes</h3>
-    <ul>
-      {quizzes.map((q) => (
-        <li key={q._id}>
-          <Link to={`/quiz/${q._id}`}>{q.title}</Link>{" "}
-          <small>
-            ({q.questionCount} questions, pass {q.passPercent}%)
-            {q.bestPercent != null && ` · best: ${q.bestPercent}% ${q.passed ? "✓" : ""}`}
-          </small>
-        </li>
-      ))}
-    </ul>
-    <LiveSection courseId={id} isOwner={false} />
-  </>
-)}
+          <>
+            <h3>Quizzes</h3>
+            <ul>
+              {quizzes.map((q) => (
+                <li key={q._id}>
+                  <Link to={`/quiz/${q._id}`}>{q.title}</Link>{" "}
+                  <small>
+                    ({q.questionCount} questions, pass {q.passPercent}%)
+                    {q.bestPercent != null && ` · best: ${q.bestPercent}% ${q.passed ? "✓" : ""}`}
+                  </small>
+                </li>
+              ))}
+            </ul>
+            <LiveSection courseId={id} isOwner={false} />
+          </>
+        )}
       </ol>
     </div>
   );
