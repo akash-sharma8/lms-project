@@ -12,6 +12,7 @@ import InstructorDashboard from "./pages/InstructorDashboard";
 import ManageCourse from "./pages/ManageCourse";
 import QuizBuilder from "./pages/QuizBuilder";
 import LiveRoom from "./pages/LiveRoom";
+import VerifyCertificate from "./pages/VerifyCertificate";
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
           path="/live/:liveId"
           element={<ProtectedRoute><LiveRoom /></ProtectedRoute>}
         />
+        <Route path="/verify/:certId" element={<VerifyCertificate />} />
 
       </Routes>
     </>
