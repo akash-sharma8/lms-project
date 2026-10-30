@@ -11,15 +11,25 @@ export default function CourseDetail() {
   const user = useSelector((s) => s.auth.user);
   const { current, enrollments } = useSelector((s) => s.courses);
   const [msg, setMsg] = useState("");
+  const [quizzes, setQuizzes] = useState([]);
 
   useEffect(() => {
     dispatch(fetchCourse(id));
     if (user) dispatch(fetchMyEnrollments());
   }, [id, user, dispatch]);
 
+  useEffect(() => {
+  const allowed = enrolled || (user && user.role !== "student");
+  if (!allowed) {
+    setQuizzes([]);
+    return;
+  }
+  api.get(`/courses/${id}/quizzes`).then(({ data }) => setQuizzes(data)).catch(() => setQuizzes([]));
+}, [id, user, enrollments]);
+
+const enrolled = enrollments.some((e) => e.course?._id === id);
   if (!current) return <p style={{ padding: 24 }}>Loading...</p>;
   const { course, lessons } = current;
-  const enrolled = enrollments.some((e) => e.course?._id === id);
 
   async function handleEnroll() {
     if (!user) return navigate("/login");
@@ -53,6 +63,22 @@ export default function CourseDetail() {
             {l.video?.status !== "ready" && <small> (no video yet)</small>}
           </li>
         ))}
+        {quizzes.length > 0 && (
+  <>
+    <h3>Quizzes</h3>
+    <ul>
+      {quizzes.map((q) => (
+        <li key={q._id}>
+          <Link to={`/quiz/${q._id}`}>{q.title}</Link>{" "}
+          <small>
+            ({q.questionCount} questions, pass {q.passPercent}%)
+            {q.bestPercent != null && ` · best: ${q.bestPercent}% ${q.passed ? "✓" : ""}`}
+          </small>
+        </li>
+      ))}
+    </ul>
+  </>
+)}
       </ol>
     </div>
   );

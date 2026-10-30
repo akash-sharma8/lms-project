@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Learn from "./pages/Learn";
 import MyLearning from "./pages/MyLearning";
+import Quiz from "./pages/Quiz";
 
 export default function App() {
   return (
@@ -24,6 +25,10 @@ export default function App() {
         <Route
           path="/my-learning"
           element={<ProtectedRoute roles={["student"]}><MyLearning /></ProtectedRoute>}
+        />
+        <Route
+          path="/quiz/:quizId"
+          element={<ProtectedRoute><Quiz /></ProtectedRoute>}
         />
       </Routes>
     </>
