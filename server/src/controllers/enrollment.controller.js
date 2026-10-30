@@ -10,7 +10,9 @@ export async function enroll(req, res) {
   const already = await Enrollment.findOne({ student: req.user._id, course: course._id });
   if (already) return res.status(400).json({ message: "Already enrolled" });
 
-  // TODO (payment step): paid courses ke liye yahan payment verify hoga
+  if (course.price > 0) {
+    return res.status(402).json({ message: "Payment required for this course" });
+  }
   const enrollment = await Enrollment.create({
     student: req.user._id,
     course: course._id,
