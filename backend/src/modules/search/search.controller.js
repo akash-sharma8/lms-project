@@ -13,7 +13,6 @@ const querySchema = z.object({
 });
 
 const CACHE_SECONDS = 30;
-// off while testing (tests must see fresh data) or when SEARCH_CACHE=off (for benchmarks)
 const cacheEnabled = () =>
   process.env.SEARCH_CACHE !== 'off' && process.env.NODE_ENV !== 'test';
 
@@ -33,15 +32,25 @@ export async function run(req, res) {
         return res.type('json').send(hit);
       }
     } catch (err) {
-      console.error('search cache read failed:', err.message); // cache trouble must not break search
+      console.error('search cache read failed:', err.message);
     }
   }
 
-  const result = await searchService.search(parsed.data);
+  let result;
+  let usedFallback = false;
+  try {
+    result = await searchService.search(parsed.data);
+  } catch (err) {
+    // Elasticsearch is down or unreachable: answer from PostgreSQL instead
+    console.error('Elasticsearch failed, using Postgres fallback:', err.message);
+    result = await searchService.searchFallback(parsed.data);
+    usedFallback = true;
+  }
 
-  if (cacheEnabled()) {
+  if (cacheEnabled() && !usedFallback) {
     redis.set(key, JSON.stringify(result), 'EX', CACHE_SECONDS).catch(() => {});
   }
   res.set('X-Cache', 'MISS');
+  if (usedFallback) res.set('X-Search', 'postgres-fallback');
   res.json(result);
 }

@@ -112,3 +112,61 @@ export async function search({ q, categoryId, minPrice, maxPrice, sort, page, li
     items: result.hits.hits.map((h) => ({ id: Number(h._id), ...h._source })),
   };
 }
+
+
+// Used only when Elasticsearch is unreachable. No fuzzy matching, but the site keeps working.
+export async function searchFallback({ q, categoryId, minPrice, maxPrice, sort, page, limit }) {
+  const where = { isActive: true };
+  if (categoryId) where.categoryId = categoryId;
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    where.pricePaise = {};
+    if (minPrice !== undefined) where.pricePaise.gte = minPrice * 100;
+    if (maxPrice !== undefined) where.pricePaise.lte = maxPrice * 100;
+  }
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: 'insensitive' } },
+      { description: { contains: q, mode: 'insensitive' } },
+    ];
+  }
+
+  const orderBy =
+    sort === 'price_asc' ? { pricePaise: 'asc' }
+    : sort === 'price_desc' ? { pricePaise: 'desc' }
+    : { createdAt: 'desc' };
+
+  const [total, rows] = await Promise.all([
+    prisma.product.count({ where }),
+    prisma.product.findMany({
+      where,
+      orderBy,
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        images: { take: 1 },
+        category: true,
+        vendor: { select: { storeName: true } },
+      },
+    }),
+  ]);
+
+  return {
+    total,
+    page,
+    pages: Math.ceil(total / limit),
+    items: rows.map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      categoryId: p.categoryId,
+      categoryName: p.category?.name ?? null,
+      vendorId: p.vendorId,
+      storeName: p.vendor.storeName,
+      pricePaise: p.pricePaise,
+      stock: p.stock,
+      isActive: p.isActive,
+      imageUrl: p.images[0]?.url ?? null,
+      createdAt: p.createdAt,
+    })),
+  };
+}
