@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // on page refresh, restore the session from the saved token
+
   useEffect(() => {
     if (!localStorage.getItem('token')) {
       setLoading(false);
