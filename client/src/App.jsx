@@ -14,6 +14,7 @@ import QuizBuilder from "./pages/QuizBuilder";
 import LiveRoom from "./pages/LiveRoom";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import Earnings from "./pages/Earnings";
+import AdminPanel from "./pages/AdminPanel";
 
 export default function App() {
   return (
@@ -56,6 +57,10 @@ export default function App() {
         <Route
           path="/instructor/earnings"
           element={<ProtectedRoute roles={["instructor", "admin"]}><Earnings /></ProtectedRoute>}
+        />
+        <Route
+          path="/admin"
+          element={<ProtectedRoute roles={["admin"]}><AdminPanel /></ProtectedRoute>}
         />
       </Routes>
     </>
