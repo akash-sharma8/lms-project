@@ -11,17 +11,42 @@ import liveRoutes from "./routes/live.routes.js";
 import certificateRoutes from "./routes/certificate.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import rateLimit from "express-rate-limit";
 
 const app = express();
-
+app.set("trust proxy", 1);
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL }));
+
+const allowedOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Postman jaisi tools origin nahi bhejti, unhe allow karo
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      cb(new Error("Not allowed by CORS"));
+    },
+  })
+);
+
 app.use(express.json());
 // local HLS files serve karne ke liye. Step 4 mein CloudFront isko replace karega
 
 app.use(morgan("dev"));
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
+// brute-force login rokne ke liye
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many attempts, try again in a few minutes" },
+});
+app.use("/api/auth", process.env.NODE_ENV === "test" ? (req, res, next) => next() : authLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/lessons", lessonRoutes);

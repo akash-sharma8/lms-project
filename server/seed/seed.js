@@ -63,8 +63,12 @@ async function run() {
 
   // create() use kar rahe hain taaki password hash wala hook chale
   const admin = await User.create({
-    name: "Admin", email: "admin@lms.com", password: "admin123", role: "admin",
-  });
+  name: "Admin",
+  email: "admin@lms.com",
+  password: process.env.ADMIN_PASSWORD || "admin123",
+  role: "admin",
+});
+
   const teacherA = await User.create({
     name: "Rohit Sharma", email: "rohit@lms.com", password: "teacher123", role: "instructor",
   });

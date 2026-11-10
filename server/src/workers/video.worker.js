@@ -8,7 +8,9 @@ import { RAW_DIR, HLS_DIR } from "../config/paths.js";
 import { convertToHls } from "../services/ffmpeg.js";
 import Lesson from "../models/Lesson.js";
 
-await mongoose.connect(process.env.MONGO_URI);
+if (mongoose.connection.readyState === 0) {
+  await mongoose.connect(process.env.MONGO_URI);
+}
 console.log("Worker: MongoDB connected");
 
 const worker = new Worker(
@@ -39,7 +41,7 @@ const worker = new Worker(
     console.log(`[${job.id}] done in ${secs}s, renditions: ${result.renditions.join(", ")}p`);
     return { seconds: Number(secs), ...result };
   },
-  { connection: redis, concurrency: 1 }
+  { connection: redis, concurrency: 1, drainDelay: 30 }
 );
 
 worker.on("failed", async (job, err) => {
