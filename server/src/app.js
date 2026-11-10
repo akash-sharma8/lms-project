@@ -10,6 +10,7 @@ import quizRoutes from "./routes/quiz.routes.js";
 import liveRoutes from "./routes/live.routes.js";
 import certificateRoutes from "./routes/certificate.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 const app = express();
 
@@ -29,7 +30,7 @@ app.use("/api/quizzes", quizRoutes);
 app.use("/api/live", liveRoutes);
 app.use("/api/certificates", certificateRoutes);
 app.use("/api/payments", paymentRoutes);
-
+app.use("/api/admin", adminRoutes);
 
 app.use((err, req, res, next) => {
       if (err.name === "MulterError") {
