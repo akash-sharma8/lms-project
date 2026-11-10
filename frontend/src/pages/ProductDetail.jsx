@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react';
+import { useNavigate, useParams } from 'react-router-dom'; // ✅ Both from react-router-dom
 import api, { errorMessage, rupees } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
