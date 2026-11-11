@@ -4,6 +4,8 @@ import Quiz from "../models/Quiz.js";
 import Attempt from "../models/Attempt.js";
 import { writeCertificate } from "../services/certificate.js";
 
+
+const clientBase = (process.env.CLIENT_URL || "").split(",")[0].trim();
 const makeCertId = () => "CERT-" + crypto.randomBytes(5).toString("hex").toUpperCase();
 
 const fmtDate = (d) =>
@@ -66,7 +68,7 @@ export async function downloadCertificate(req, res) {
     instructorName: enrollment.course.instructor.name,
     date: fmtDate(enrollment.completedAt || enrollment.updatedAt),
     certId: enrollment.certificateId,
-    verifyUrl: `${process.env.CLIENT_URL}/verify/${enrollment.certificateId}`,
+    verifyUrl: `${clientBase}/verify/${enrollment.certificateId}`,
   });
 }
 
