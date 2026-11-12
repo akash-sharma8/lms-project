@@ -16,6 +16,7 @@ export default function CourseDetail() {
   const [quizzes, setQuizzes] = useState([]);
 
   const enrolled = enrollments.some((e) => e.course?._id === id);
+  const canAccessContent = enrolled || (user && user.role !== "student");
 
   useEffect(() => {
     dispatch(fetchCourse(id));
@@ -23,8 +24,7 @@ export default function CourseDetail() {
   }, [id, user, dispatch]);
 
   useEffect(() => {
-    const allowed = enrolled || (user && user.role !== "student");
-    if (!allowed) {
+    if (!canAccessContent) {
       setQuizzes([]);
       return;
     }
@@ -32,7 +32,7 @@ export default function CourseDetail() {
       .get(`/courses/${id}/quizzes`)
       .then(({ data }) => setQuizzes(data))
       .catch(() => setQuizzes([]));
-  }, [id, user, enrollments, enrolled]);
+  }, [id, canAccessContent]);
 
   if (!current) {
     return (
@@ -45,7 +45,7 @@ export default function CourseDetail() {
             <div className="mt-2 h-4 w-4/5 rounded bg-gray-100" />
             <div className="mt-6 h-10 w-36 rounded-xl bg-gray-200" />
           </div>
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-3">
+          <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-6">
             <div className="h-6 w-40 rounded bg-gray-200" />
             {[...Array(4)].map((_, idx) => (
               <div key={idx} className="h-12 w-full rounded-xl bg-gray-100" />
@@ -57,7 +57,6 @@ export default function CourseDetail() {
   }
 
   const { course, lessons } = current;
-  const canAccessContent = enrolled || (user && user.role !== "student");
 
   async function handleEnroll() {
     if (!user) return navigate("/login");
@@ -71,10 +70,13 @@ export default function CourseDetail() {
     }
   }
 
+  const enrollButtonClass =
+    "rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]";
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50 px-6 py-8">
       <div className="mx-auto max-w-4xl space-y-6">
-        {/* Back Link */}
+        {/* Back link */}
         <Link
           to="/"
           className="group inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 transition-colors hover:text-blue-600"
@@ -85,7 +87,7 @@ export default function CourseDetail() {
           Back to courses
         </Link>
 
-        {/* Course Header Hero Card */}
+        {/* Course header */}
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="flex flex-wrap items-center gap-2.5">
             {course.category && (
@@ -106,7 +108,7 @@ export default function CourseDetail() {
             {course.description}
           </p>
 
-          {/* Instructor & Enrollment Footer */}
+          {/* Instructor and enroll area */}
           <div className="mt-6 flex flex-col justify-between gap-4 border-t border-gray-100 pt-6 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
@@ -135,19 +137,13 @@ export default function CourseDetail() {
               </div>
 
               {user?.role === "student" && !enrolled && (
-                <button
-                  onClick={handleEnroll}
-                  className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]"
-                >
+                <button onClick={handleEnroll} className={enrollButtonClass}>
                   {course.price > 0 ? `Buy for ₹${course.price}` : "Enroll now"}
                 </button>
               )}
 
               {!user && (
-                <button
-                  onClick={handleEnroll}
-                  className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]"
-                >
+                <button onClick={handleEnroll} className={enrollButtonClass}>
                   {course.price > 0
                     ? `Login to buy (₹${course.price})`
                     : "Login to enroll"}
@@ -170,12 +166,12 @@ export default function CourseDetail() {
           )}
         </div>
 
-        {/* Lessons Curriculum Card */}
+        {/* Lessons */}
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-gray-900">
-                {(!isOwner && list.length === 0) ? null : "Curriculum"}
+                Course Curriculum
               </h2>
               <p className="text-xs text-gray-500">
                 {canAccessContent
@@ -198,11 +194,11 @@ export default function CourseDetail() {
                 const isReady = l.video?.status === "ready";
                 const rowContent = (
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex min-w-0 items-center gap-3.5">
                       <span
                         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                           canAccessContent
-                            ? "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors"
+                            ? "bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white"
                             : "bg-gray-100 text-gray-500"
                         }`}
                       >
@@ -211,7 +207,7 @@ export default function CourseDetail() {
                       <span
                         className={`truncate text-sm font-medium ${
                           canAccessContent
-                            ? "text-gray-900 group-hover:text-blue-600 transition-colors"
+                            ? "text-gray-900 transition-colors group-hover:text-blue-600"
                             : "text-gray-700"
                         }`}
                       >
@@ -269,7 +265,7 @@ export default function CourseDetail() {
           )}
         </div>
 
-        {/* Quizzes Section */}
+        {/* Quizzes */}
         {quizzes.length > 0 && (
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
             <div className="mb-5 flex items-center justify-between">
@@ -327,12 +323,8 @@ export default function CourseDetail() {
           </div>
         )}
 
-                {/* Live Classes Section */}
-        {canAccessContent && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-            <LiveSection courseId={id} isOwner={false} />
-          </div>
-        )}
+        {/* Live classes: LiveSection apna card khud banata hai */}
+        {canAccessContent && <LiveSection courseId={id} isOwner={false} />}
       </div>
     </div>
   );
