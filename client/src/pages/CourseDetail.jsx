@@ -175,7 +175,7 @@ export default function CourseDetail() {
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-gray-900">
-                Courif (!isOwner && list.length === 0) return null;se Curriculum
+                {(!isOwner && list.length === 0) ? null : "Curriculum"}
               </h2>
               <p className="text-xs text-gray-500">
                 {canAccessContent
